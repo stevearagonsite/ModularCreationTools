@@ -12,14 +12,17 @@ public class CreatorFloors : MonoBehaviour {
     public List<GameObject> childs { get; set; }
     public List<GameObject> childsInScene { get; private set; }
     public Vector3 creationPosition { get { return _creationGameObject.transform.localPosition; } }
-    public int areaWidth { get; private set; }
-    public int areaHeight { get; private set; }
+    public int areaCreationWidth { get; private set; }
+    public int areaCreationHeight { get; private set; }
+    public float areaWidthElements { get; private set; }
+    public float areaHeightElements { get; private set; }
     public float separationWidth { get; private set; }
     public float separationHeight { get; private set; }
 
-    private void Update()
+    private void Start()
     {
         EditorStart();
+        this.CreationSizes(2, 2);
     }
 
     private void EditorStart()
@@ -34,12 +37,22 @@ public class CreatorFloors : MonoBehaviour {
         }
     }
 
+    public void CreationSizes(float valueWidth, float valueHeight)
+    {
+        if (valueWidth != areaWidthElements || valueHeight != areaHeightElements)
+        {
+            areaWidthElements = valueWidth;
+            areaHeightElements = valueHeight;
+            Debug.Log("Sizes of elements");
+        }
+    }
+
     public void CreationElements(int valueWidth, int valueHeight)
     {
-        if (valueWidth != areaWidth || valueHeight != areaHeight)
+        if (valueWidth != areaCreationWidth || valueHeight != areaCreationHeight)
         {
-            areaWidth = valueWidth;
-            areaHeight = valueHeight;
+            areaCreationWidth = valueWidth;
+            areaCreationHeight = valueHeight;
             Debug.Log("Creation Elements");
         }
     }
@@ -64,6 +77,11 @@ public class CreatorFloors : MonoBehaviour {
         Gizmos.DrawIcon( transform.position, ConstGizmos.PATH_GIZMO_FLOOR, true);
     }
 
+    public void ExecutionUpdateChilds()
+    {
+        Debug.Log("Run update");
+    }
+
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
@@ -71,14 +89,14 @@ public class CreatorFloors : MonoBehaviour {
 
         Gizmos.color = Color.green;
 
-        var sideA = new Vector3(_creationGameObject.transform.position.x, transform.position.y, _creationGameObject.transform.position.z);
-        var sideB = new Vector3(_creationGameObject.transform.position.x + areaWidth, transform.position.y, _creationGameObject.transform.position.z);
-        var sideC = new Vector3(_creationGameObject.transform.position.x + areaWidth, transform.position.y, _creationGameObject.transform.position.z + areaHeight);
-        var sideD = new Vector3(_creationGameObject.transform.position.x, transform.position.y, _creationGameObject.transform.position.z + areaHeight);
+        //If this view in center.
+        Gizmos.matrix = _creationGameObject.transform.localToWorldMatrix;
 
-        Gizmos.DrawLine(sideA, sideB);
-        Gizmos.DrawLine(sideB, sideC);
-        Gizmos.DrawLine(sideC, sideD);
-        Gizmos.DrawLine(sideD, sideA);
+        var separationAreaWidth = (areaCreationWidth > 1 ? areaCreationWidth - 1 : areaCreationWidth) * separationWidth;
+        var separationAreaHeight = (areaCreationHeight > 1 ? areaCreationHeight - 1 : areaCreationHeight) * separationHeight;
+        var areaX = (areaCreationWidth * areaWidthElements) + separationAreaWidth;
+        var areaZ = (areaCreationHeight * areaHeightElements) + separationAreaHeight;
+
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(areaX, 0, areaZ));
     }
 }

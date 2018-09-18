@@ -51,11 +51,47 @@ public class EditorCreatorFloor : Editor {
         GenericsEditor.Rect(2, Color.black);
         GenericsEditor.Spaces(2);
 
+        ElementSettings();
+
+
+        GenericsEditor.Spaces(1);
+        GenericsEditor.Rect(2, Color.black);
+        GenericsEditor.Spaces(2);
+
         AreaOfCreation();
 
-        GenericsEditor.Spaces(5);
+        GenericsEditor.Spaces(2);
         GenericsEditor.Rect(3, Color.black);
         GenericsEditor.Spaces(2);
+
+        var name = (_creator.childsInScene != null && _creator.childsInScene.Count > 0) ? "update" : "create";
+        if (GUILayout.Button(name))
+        {
+            _creator.ExecutionUpdateChilds();
+            Repaint();
+            return;
+        }
+    }
+
+    private void ElementSettings()
+    {
+        //Initial message.
+        var style = TextStyles.h4;
+        style.padding = new RectOffset(1, 0, 1, 0);
+        GUI.TextArea(GUILayoutUtility.GetRect(0, 36), ConstEditor.CREATOR_FLOORS_AREA_OF_ELEMENTS, style);
+
+        //Row 2
+        EditorGUILayout.BeginHorizontal();
+        GUI.Label(GUILayoutUtility.GetRect(80, 25), "Area ");
+
+        GUI.Label(GUILayoutUtility.GetRect(40, 25), "Width:  ");
+        var AreaWidth = EditorGUILayout.FloatField(_creator.areaWidthElements);
+        GUI.Label(GUILayoutUtility.GetRect(40, 25), "Height: ");
+        var AreaHeight = EditorGUILayout.FloatField(_creator.areaHeightElements);
+
+        _creator.CreationSizes(AreaWidth, AreaHeight);
+
+        EditorGUILayout.EndHorizontal();
     }
 
     private void AreaOfCreation()
@@ -84,22 +120,22 @@ public class EditorCreatorFloor : Editor {
         GUI.Label(GUILayoutUtility.GetRect(80, 25), "Area ");
 
         GUI.Label(GUILayoutUtility.GetRect(40, 25), "Width:  ");
-        var AreaWidth = EditorGUILayout.IntField(_creator.areaWidth);
+        var AreaWidth = EditorGUILayout.IntField(_creator.areaCreationWidth);
         GUI.Label(GUILayoutUtility.GetRect(40, 25), "Height: ");
-        var AreaHeight = EditorGUILayout.IntField(_creator.areaHeight);
+        var AreaHeight = EditorGUILayout.IntField(_creator.areaCreationHeight);
 
         _creator.CreationElements(AreaWidth, AreaHeight);
 
         EditorGUILayout.EndHorizontal();
 
-        //Row 2
+        //Row 3
         EditorGUILayout.BeginHorizontal();
         GUI.Label(GUILayoutUtility.GetRect(80, 25), "Separation ");
 
         GUI.Label(GUILayoutUtility.GetRect(80, 25), "In Width:  ");
-        var InWidth = EditorGUILayout.IntField(_creator.areaWidth);
+        var InWidth = EditorGUILayout.FloatField(_creator.separationWidth);
         GUI.Label(GUILayoutUtility.GetRect(80, 25), "In Height: ");
-        var InHeight = EditorGUILayout.IntField(_creator.areaHeight);
+        var InHeight = EditorGUILayout.FloatField(_creator.separationHeight);
 
         _creator.SeparationUpdate(InWidth, InHeight);
 
