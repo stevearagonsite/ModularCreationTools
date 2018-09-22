@@ -120,9 +120,9 @@ public class EditorCreatorFloor : Editor {
         GUI.Label(GUILayoutUtility.GetRect(80, 25), "Area ");
 
         GUI.Label(GUILayoutUtility.GetRect(40, 25), "Width:  ");
-        var AreaWidth = EditorGUILayout.IntField(_creator.areaCreationWidth);
+        var AreaWidth = EditorGUILayout.IntField(_creator.creationCountX);
         GUI.Label(GUILayoutUtility.GetRect(40, 25), "Height: ");
-        var AreaHeight = EditorGUILayout.IntField(_creator.areaCreationHeight);
+        var AreaHeight = EditorGUILayout.IntField(_creator.creationCountZ);
 
         _creator.CreationElements(AreaWidth, AreaHeight);
 

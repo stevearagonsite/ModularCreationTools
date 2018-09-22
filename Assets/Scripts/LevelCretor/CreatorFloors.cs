@@ -12,8 +12,8 @@ public class CreatorFloors : MonoBehaviour {
     public List<GameObject> childs { get; set; }
     public List<GameObject> childsInScene { get; private set; }
     public Vector3 creationPosition { get { return _creationGameObject.transform.localPosition; } }
-    public int areaCreationWidth { get; private set; }
-    public int areaCreationHeight { get; private set; }
+    public int creationCountX { get; private set; }
+    public int creationCountZ { get; private set; }
     public float areaWidthElements { get; private set; }
     public float areaHeightElements { get; private set; }
     public float separationWidth { get; private set; }
@@ -49,10 +49,10 @@ public class CreatorFloors : MonoBehaviour {
 
     public void CreationElements(int valueWidth, int valueHeight)
     {
-        if (valueWidth != areaCreationWidth || valueHeight != areaCreationHeight)
+        if (valueWidth != creationCountX || valueHeight != creationCountZ)
         {
-            areaCreationWidth = valueWidth;
-            areaCreationHeight = valueHeight;
+            creationCountX = valueWidth;
+            creationCountZ = valueHeight;
             Debug.Log("Creation Elements");
         }
     }
@@ -87,16 +87,42 @@ public class CreatorFloors : MonoBehaviour {
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, _creationGameObject.transform.position);
 
-        Gizmos.color = Color.green;
-
         //If this view in center.
+        Gizmos.color = Color.green;
         Gizmos.matrix = _creationGameObject.transform.localToWorldMatrix;
 
-        var separationAreaWidth = (areaCreationWidth > 1 ? areaCreationWidth - 1 : areaCreationWidth) * separationWidth;
-        var separationAreaHeight = (areaCreationHeight > 1 ? areaCreationHeight - 1 : areaCreationHeight) * separationHeight;
-        var areaX = (areaCreationWidth * areaWidthElements) + separationAreaWidth;
-        var areaZ = (areaCreationHeight * areaHeightElements) + separationAreaHeight;
+        var separationAreaWidth = (creationCountX > 1 ? creationCountX - 1 : creationCountX) * separationWidth;
+        var separationAreaHeight = (creationCountZ > 1 ? creationCountZ - 1 : creationCountZ) * separationHeight;
+        var areaX = (creationCountX * areaWidthElements) + separationAreaWidth;
+        var areaZ = (creationCountZ * areaHeightElements) + separationAreaHeight;
 
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(areaX, 0, areaZ));
+        //The modules in area creation.
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(areaX, -0.1f, areaZ));
+
+        //Create elements view.
+        Gizmos.color = Color.blue;
+        var elements = GetPositions(-((areaX / 2) - areaWidthElements / 2), -((areaZ / 2) - areaHeightElements / 2));
+
+        foreach (var element in elements)
+        {
+            Gizmos.DrawWireCube(
+                new Vector3(element.Item1, 0, element.Item2),
+                new Vector3(areaWidthElements, 0, areaHeightElements
+                ));
+        }
+    }
+
+    public IEnumerable<Tuple<float, float>> GetPositions(float pivotPointX, float pivotPointZ)
+    {
+        for (int i = 0; i < creationCountX; i++)
+        {
+            var newPositionX = pivotPointX + ((areaWidthElements + separationWidth) * i);
+            for (int j = 0; j < creationCountZ; j++)
+            {
+                var newPositionZ = pivotPointZ + ((areaHeightElements + separationHeight) * j);
+
+                yield return Tuple.Create(newPositionX, newPositionZ);
+            }
+        }
     }
 }
