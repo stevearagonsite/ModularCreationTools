@@ -12,6 +12,12 @@ public class CreatorFloors : MonoBehaviour {
     public List<GameObject> childs { get; set; }
     public List<GameObject> childsInScene { get; private set; }
     public Vector3 creationPosition { get { return _creationGameObject.transform.localPosition; } }
+
+    private float _totalSeparationAreaWidth;
+    private float _totalSeparationAreaHeight;
+    private float _areaX;
+    private float _areaZ;
+
     public int creationCountX { get; private set; }
     public int creationCountZ { get; private set; }
     public float areaWidthElements { get; private set; }
@@ -21,8 +27,13 @@ public class CreatorFloors : MonoBehaviour {
 
     private void Start()
     {
-        EditorStart();
+        
         this.CreationSizes(2, 2);
+    }
+
+    private void Update()
+    {
+        EditorStart();
     }
 
     private void EditorStart()
@@ -43,17 +54,21 @@ public class CreatorFloors : MonoBehaviour {
         {
             areaWidthElements = valueWidth;
             areaHeightElements = valueHeight;
+
+            UpdateGeneralValues();
             Debug.Log("Sizes of elements");
         }
     }
 
     public void CreationElements(int valueWidth, int valueHeight)
     {
-        if (valueWidth != creationCountX || valueHeight != creationCountZ)
+        if (valueWidth != creationCountX || valueHeight != creationCountZ || childs.Count > 0)
         {
             creationCountX = valueWidth;
             creationCountZ = valueHeight;
-            Debug.Log("Creation Elements");
+
+            UpdateGeneralValues();
+            Debug.Log("execution!!");
         }
     }
 
@@ -63,6 +78,8 @@ public class CreatorFloors : MonoBehaviour {
         {
             separationWidth = valueSeparationWidth;
             separationHeight = valueSeparationHeight;
+
+            UpdateGeneralValues();
             Debug.Log("Update separation");
         }
     }
@@ -72,46 +89,44 @@ public class CreatorFloors : MonoBehaviour {
         _creationGameObject.transform.localPosition = new Vector3(valueX, transform.position.y, valueZ);
     }
 
-    void OnDrawGizmos()
-    {
-        Gizmos.DrawIcon( transform.position, ConstGizmos.PATH_GIZMO_FLOOR, true);
-    }
-
+    //Online execution when the user set the action.
     public void ExecutionUpdateChilds()
     {
-        Debug.Log("Run update");
-    }
+        //_creationGameObject.transform.lo = transform.rotation;
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, _creationGameObject.transform.position);
+        var elements = GetPositions(
+            -((_areaX / 2) - areaWidthElements / 2) + creationPosition.x + transform.position.x,
+            -((_areaZ / 2) - areaHeightElements / 2) + creationPosition.z + transform.position.z);
 
-        //If this view in center.
-        Gizmos.color = Color.green;
-        Gizmos.matrix = _creationGameObject.transform.localToWorldMatrix;
+        //Reset the scene for update the scene.
+        childsInScene.ForEach(element => DestroyImmediate(element));
+        childsInScene = null;
+        childsInScene = new List<GameObject>();
 
-        var separationAreaWidth = (creationCountX > 1 ? creationCountX - 1 : creationCountX) * separationWidth;
-        var separationAreaHeight = (creationCountZ > 1 ? creationCountZ - 1 : creationCountZ) * separationHeight;
-        var areaX = (creationCountX * areaWidthElements) + separationAreaWidth;
-        var areaZ = (creationCountZ * areaHeightElements) + separationAreaHeight;
-
-        //The modules in area creation.
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(areaX, -0.1f, areaZ));
-
-        //Create elements view.
-        Gizmos.color = Color.blue;
-        var elements = GetPositions(-((areaX / 2) - areaWidthElements / 2), -((areaZ / 2) - areaHeightElements / 2));
-
+        //Create new elements for update the scene.
         foreach (var element in elements)
         {
-            Gizmos.DrawWireCube(
-                new Vector3(element.Item1, 0, element.Item2),
-                new Vector3(areaWidthElements, 0, areaHeightElements
-                ));
+            foreach (var child in childs)
+            {
+                var newChildInScene = Instantiate(child);
+                childsInScene.Add(newChildInScene);
+
+                newChildInScene.transform.position = new Vector3(element.Item1, _creationGameObject.transform.position.y, element.Item2);
+                newChildInScene.transform.parent = _creationGameObject.transform;
+            }
         }
     }
 
+    //Calculation the area of creation.
+    public void UpdateGeneralValues()
+    {
+        _totalSeparationAreaWidth = (creationCountX > 1 ? creationCountX - 1 : creationCountX) * separationWidth;
+        _totalSeparationAreaHeight = (creationCountZ > 1 ? creationCountZ - 1 : creationCountZ) * separationHeight;
+        _areaX = (creationCountX * areaWidthElements) + _totalSeparationAreaWidth;
+        _areaZ = (creationCountZ * areaHeightElements) + _totalSeparationAreaHeight;
+    }
+
+    //Create matrix position with a list of positions.
     public IEnumerable<Tuple<float, float>> GetPositions(float pivotPointX, float pivotPointZ)
     {
         for (int i = 0; i < creationCountX; i++)
@@ -123,6 +138,36 @@ public class CreatorFloors : MonoBehaviour {
 
                 yield return Tuple.Create(newPositionX, newPositionZ);
             }
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.DrawIcon(transform.position, ConstGizmos.PATH_GIZMO_FLOOR, true);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, _creationGameObject.transform.position);
+
+        //If this view in center.
+        Gizmos.color = Color.green;
+        Gizmos.matrix = _creationGameObject.transform.localToWorldMatrix;
+
+        //The modules in area creation.
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(_areaX, -0.1f, _areaZ));
+
+        //Create elements view.
+        Gizmos.color = Color.blue;
+        var elements = GetPositions(-((_areaX / 2) - areaWidthElements / 2), -((_areaZ / 2) - areaHeightElements / 2));
+
+        foreach (var element in elements)
+        {
+            Gizmos.DrawWireCube(
+                new Vector3(element.Item1, 0, element.Item2),
+                new Vector3(areaWidthElements, 0, areaHeightElements
+                ));
         }
     }
 }
