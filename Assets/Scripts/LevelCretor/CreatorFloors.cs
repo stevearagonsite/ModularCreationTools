@@ -27,24 +27,31 @@ public class CreatorFloors : MonoBehaviour {
 
     private void Start()
     {
-        
+        EditorStart();
         this.CreationSizes(2, 2);
     }
 
     private void Update()
     {
-        EditorStart();
+        //Security execution.
+        if (transform.childCount == 0 || _creationGameObject == null) EditorStart();
+        if (transform.eulerAngles != Vector3.zero) transform.eulerAngles = Vector3.zero;
+        if (_creationGameObject.transform.eulerAngles != Vector3.zero) _creationGameObject.transform.eulerAngles = Vector3.zero;
+
     }
 
     private void EditorStart()
     {
-        if (_creationGameObject == null)
+        if (_creationGameObject == null && transform.childCount == 0)
         {
             var newGameObject = new GameObject();
             newGameObject.transform.SetParent(this.transform);
-            newGameObject.name = "CreationPoint";
 
             _creationGameObject = newGameObject;
+        }
+        else if(_creationGameObject == null)
+        {
+            _creationGameObject = transform.GetChild(0).GetComponent<GameObject>();
         }
     }
 
@@ -56,7 +63,6 @@ public class CreatorFloors : MonoBehaviour {
             areaHeightElements = valueHeight;
 
             UpdateGeneralValues();
-            Debug.Log("Sizes of elements");
         }
     }
 
@@ -68,7 +74,6 @@ public class CreatorFloors : MonoBehaviour {
             creationCountZ = valueHeight;
 
             UpdateGeneralValues();
-            Debug.Log("execution!!");
         }
     }
 
@@ -80,7 +85,6 @@ public class CreatorFloors : MonoBehaviour {
             separationHeight = valueSeparationHeight;
 
             UpdateGeneralValues();
-            Debug.Log("Update separation");
         }
     }
 
