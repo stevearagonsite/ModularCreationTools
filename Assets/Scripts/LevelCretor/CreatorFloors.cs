@@ -11,12 +11,12 @@ public class CreatorFloors : MonoBehaviour {
 
     public List<GameObject> childs { get; set; }
     public List<GameObject> childsInScene { get; private set; }
-    public Vector3 creationPosition { get { return _creationGameObject.transform.localPosition; } }
+    public Vector3 creationPosition { get { return _creationGameObject ? _creationGameObject.transform.localPosition : transform.position; } }
 
-    private float _totalSeparationAreaWidth;
-    private float _totalSeparationAreaHeight;
-    private float _areaX;
-    private float _areaZ;
+    private float _totalSeparationAreaWidth = 2;
+    private float _totalSeparationAreaHeight = 2;
+    private float _areaX = 2;
+    private float _areaZ = 2;
 
     public int creationCountX { get; private set; }
     public int creationCountZ { get; private set; }
@@ -25,7 +25,7 @@ public class CreatorFloors : MonoBehaviour {
     public float separationWidth { get; private set; }
     public float separationHeight { get; private set; }
 
-    private void Start()
+    private void OnEnable()
     {
         EditorStart();
         this.CreationSizes(2, 2);
@@ -36,20 +36,37 @@ public class CreatorFloors : MonoBehaviour {
         //Security execution.
         if (transform.childCount == 0 || _creationGameObject == null) EditorStart();
         if (transform.eulerAngles != Vector3.zero) transform.eulerAngles = Vector3.zero;
-        if (_creationGameObject.transform.eulerAngles != Vector3.zero) _creationGameObject.transform.eulerAngles = Vector3.zero;
+        if (_creationGameObject && _creationGameObject.transform.eulerAngles != Vector3.zero) _creationGameObject.transform.eulerAngles = Vector3.zero;
 
     }
 
     private void EditorStart()
     {
-        if (_creationGameObject == null && transform.childCount == 0)
-        {
+        var childsCount = transform.childCount;
+        Debug.Log("sarasasa " + childsCount + _creationGameObject);
+
+        if (childsCount <= 0){
             var newGameObject = new GameObject();
+            newGameObject.name = "CreationPoint";
             newGameObject.transform.SetParent(this.transform);
 
             _creationGameObject = newGameObject;
         }
-        else if(_creationGameObject == null)
+        else if(childsCount > 0 && !_creationGameObject){
+
+            var list = transform.GetComponentInChildren<GameObject>();
+            Debug.Log("ss" + list);
+            for (int i = childsCount - 1; i < 0; i--)
+            {
+                DestroyImmediate(transform.GetChild(i).GetComponent<GameObject>());
+            }
+
+            var newGameObject = new GameObject();
+            newGameObject.name = "CreationPoint";
+            newGameObject.transform.SetParent(this.transform);
+
+            _creationGameObject = newGameObject;
+        }else if (childsCount == 1 && !_creationGameObject)
         {
             _creationGameObject = transform.GetChild(0).GetComponent<GameObject>();
         }
@@ -90,7 +107,7 @@ public class CreatorFloors : MonoBehaviour {
 
     public void UpdatePosition(float valueX, float valueZ)
     {
-        _creationGameObject.transform.localPosition = new Vector3(valueX, transform.position.y, valueZ);
+        if (_creationGameObject) _creationGameObject.transform.localPosition = new Vector3(valueX, transform.position.y, valueZ);
     }
 
     //Online execution when the user set the action.
@@ -99,8 +116,8 @@ public class CreatorFloors : MonoBehaviour {
         //_creationGameObject.transform.lo = transform.rotation;
 
         var elements = GetPositions(
-            -((_areaX / 2) - areaWidthElements / 2) + creationPosition.x + transform.position.x,
-            -((_areaZ / 2) - areaHeightElements / 2) + creationPosition.z + transform.position.z);
+            -((_areaX / 2) - areaWidthElements / 2) + _creationGameObject.transform.position.x + transform.position.x,
+            -((_areaZ / 2) - areaHeightElements / 2) + _creationGameObject.transform.position.z + transform.position.z);
 
         //Reset the scene for update the scene.
         childsInScene.ForEach(element => DestroyImmediate(element));
@@ -152,26 +169,29 @@ public class CreatorFloors : MonoBehaviour {
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, _creationGameObject.transform.position);
-
-        //If this view in center.
-        Gizmos.color = Color.green;
-        Gizmos.matrix = _creationGameObject.transform.localToWorldMatrix;
-
-        //The modules in area creation.
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(_areaX, -0.1f, _areaZ));
-
-        //Create elements view.
-        Gizmos.color = Color.blue;
-        var elements = GetPositions(-((_areaX / 2) - areaWidthElements / 2), -((_areaZ / 2) - areaHeightElements / 2));
-
-        foreach (var element in elements)
+        if (_creationGameObject)
         {
-            Gizmos.DrawWireCube(
-                new Vector3(element.Item1, 0, element.Item2),
-                new Vector3(areaWidthElements, 0, areaHeightElements
-                ));
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, _creationGameObject.transform.position);
+
+            //If this view in center.
+            Gizmos.color = Color.green;
+            Gizmos.matrix = _creationGameObject.transform.localToWorldMatrix;
+
+            //The modules in area creation.
+            Gizmos.DrawWireCube(Vector3.zero, new Vector3(_areaX, -0.1f, _areaZ));
+
+            //Create elements view.
+            Gizmos.color = Color.blue;
+            var elements = GetPositions(-((_areaX / 2) - areaWidthElements / 2), -((_areaZ / 2) - areaHeightElements / 2));
+
+            foreach (var element in elements)
+            {
+                Gizmos.DrawWireCube(
+                    new Vector3(element.Item1, 0, element.Item2),
+                    new Vector3(areaWidthElements, 0, areaHeightElements
+                    ));
+            }
         }
     }
 }

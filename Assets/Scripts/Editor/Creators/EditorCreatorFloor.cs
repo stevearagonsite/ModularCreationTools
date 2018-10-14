@@ -38,9 +38,15 @@ public class EditorCreatorFloor : Editor {
 
         ListOfElements();
 
+        if (_creator.childs.Count <= 0)
+        {
+            EditorGUILayout.HelpBox("The list of elements is empty.", MessageType.Warning);
+            return;
+        }
+
         foreach (var element in _creator.childs)
         {
-            if (element == null)
+            if (element == null || _creator.childs.Count <= 0)
             {
                 EditorGUILayout.HelpBox("Some of the elements to create is empty.", MessageType.Warning);
                 break;
